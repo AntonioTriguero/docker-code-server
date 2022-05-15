@@ -13,7 +13,21 @@ else
     PROXY_DOMAIN_ARG="--proxy-domain=${PROXY_DOMAIN}"
 fi
 
-exec \
+if [[ -z "${HTTPS_ENABLE}" ]]; then
+  exec \
+    s6-setuidgid abc \
+        /app/code-server/bin/code-server \
+            --bind-addr 0.0.0.0:8443 \
+            --user-data-dir /config/data \
+            --extensions-dir /config/extensions \
+            --disable-telemetry \
+            --auth "${AUTH}" \
+            "${PROXY_DOMAIN_ARG}" \
+            "${DEFAULT_WORKSPACE:-/config/workspace}" \
+            --cert /certs/ssl.crt \
+            --key-cert /certs/ssl.key
+else
+  exec \
     s6-setuidgid abc \
         /app/code-server/bin/code-server \
             --bind-addr 0.0.0.0:8443 \
@@ -23,3 +37,4 @@ exec \
             --auth "${AUTH}" \
             "${PROXY_DOMAIN_ARG}" \
             "${DEFAULT_WORKSPACE:-/config/workspace}"
+fi
